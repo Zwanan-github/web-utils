@@ -1,5 +1,5 @@
 <script setup>
-import {computed, ref} from "vue";
+import {computed, ref, watch} from "vue";
 import router from "@/router";
 import {useTitle} from "@vueuse/core";
 
@@ -49,6 +49,9 @@ const success = ref('');
 // 当前的name是否通过
 const auth = ref(false)
 
+// 输入密码的状态
+const modal = ref('');
+
 // 先从数据库查询该剪贴板信息
 const getPrivate = async () => {
   const res = await fetch(`/api/paste/private/${name.value}`,{
@@ -81,6 +84,7 @@ const getPaste = async () => {
   }
   const data = await res.json();
   if (data.name === '') {
+    modal.value = 'open';
     return;
   }
   paste.value = data;
@@ -129,12 +133,29 @@ const deletePaste = async () => {
   router.go(0);
 }
 
+
+watch(modal, (val) => {
+  if (val === 'open') {
+    document.getElementById('my_modal_3').showModal();
+  }
+  modal.value = 'close';
+})
+
 </script>
 
 <template>
   <div v-if="auth === false" class="hero">
     <div class="hero-content text-center">
       <div class="text-center">
+        <dialog id="my_modal_3" class="modal">
+          <div class="modal-box">
+            <form method="dialog">
+              <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="font-bold text-lg">获取失败!🥲</h3>
+            <p class="py-4">请查看是否密码有误！</p>
+          </div>
+        </dialog>
         <h1 class="text-2xl font-bold">该剪贴板已加密</h1>
         <!--表单-->
         <input class="input input-bordered join-item" type="text" v-model="paste.password" placeholder="请输入密码"/>
@@ -162,7 +183,7 @@ const deletePaste = async () => {
         <div class="h-full w-full md:w-1/5">
           <div class="py-2">
             <span class="font-bold">状态:&nbsp;</span>
-            <div v-if="paste.expire === 0 && paste.password === ''" class="badge badge-accent badge-outline">可用</div>
+            <div v-if="paste.browseTimes === 0 && paste.password === ''" class="badge badge-accent badge-outline">可用</div>
             <div v-if="paste.expire !== 0 && paste.password === ''" class="badge badge-primary badge-outline">公开</div>
             <div v-if="paste.expire !== 0 && paste.password !== ''" class="badge badge-secondary badge-outline">私有</div>
           </div>
