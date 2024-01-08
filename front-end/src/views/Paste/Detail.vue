@@ -47,7 +47,7 @@ const error = ref('');
 const success = ref('');
 
 // 当前的name是否通过
-const auth = ref(false)
+const auth = ref(null)
 
 // 输入密码的状态
 const modal = ref('');
@@ -141,28 +141,23 @@ watch(modal, (val) => {
   modal.value = 'close';
 })
 
+const keydown = (e) => {
+  let keyCode = e.key;
+  // 表示tab案件的 值
+  if (keyCode === 'Tab') {
+    let start = textCode.selectionStart;
+    let end = textCode.selectionEnd;
+    textCode.value = textCode.value.substring(0, start)
+        + "\t"
+        + textCode.value.substring(end);
+    textCode.selectionStart = textCode.selectionEnd = start + 1;
+    return e.preventDefault();
+  }
+}
+
 </script>
 
 <template>
-  <div v-if="auth === false" class="hero">
-    <div class="hero-content text-center">
-      <div class="text-center">
-        <dialog id="my_modal_3" class="modal">
-          <div class="modal-box">
-            <form method="dialog">
-              <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-            </form>
-            <h3 class="font-bold text-lg">获取失败!🥲</h3>
-            <p class="py-4">请查看是否密码有误！</p>
-          </div>
-        </dialog>
-        <h1 class="text-2xl font-bold">该剪贴板已加密</h1>
-        <!--表单-->
-        <input class="input input-bordered join-item" type="text" v-model="paste.password" placeholder="请输入密码"/>
-        <button class="btn btn-ghost bg-info join-item" @click="getPaste">查看剪贴板</button>
-      </div>
-    </div>
-  </div>
   <div v-if="auth === true" class="grid min-h-[75vh] place-items-center w-full">
     <div class="py-4 px-10 w-full h-full max-w-[1760px]">
       <div v-if="success !== ''" role="alert" class="alert alert-success">
@@ -176,8 +171,8 @@ watch(modal, (val) => {
       <div class="flex py-2 w-full justify-center flex-col h-full md:flex-row">
         <div class="w-full md:w-3/5 h-full">
           <!--文本框-->
-          <textarea class="textarea text-xl min-h-[80vh] w-full textarea-bordered" v-model="paste.content"
-                    :placeholder="pastePlaceholder"></textarea>
+          <textarea id="textCode" class="textarea text-xl min-h-[80vh] w-full textarea-bordered" v-model="paste.content"
+                    :placeholder="pastePlaceholder" @keydown="keydown"></textarea>
         </div>
         <div class="divider md:divider-horizontal"></div>
         <div class="h-full w-full md:w-1/5">
@@ -223,6 +218,25 @@ watch(modal, (val) => {
             <button class="btn btn-error w-2/5 mx-1" @click="deletePaste">删除</button>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+  <div v-if="auth === false" class="hero">
+    <div class="hero-content text-center">
+      <div class="text-center">
+        <dialog id="my_modal_3" class="modal">
+          <div class="modal-box">
+            <form method="dialog">
+              <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="font-bold text-lg">获取失败!🥲</h3>
+            <p class="py-4">请查看是否密码有误！</p>
+          </div>
+        </dialog>
+        <h1 class="text-2xl font-bold">该剪贴板已加密</h1>
+        <!--表单-->
+        <input class="input input-bordered join-item" type="text" v-model="paste.password" placeholder="请输入密码"/>
+        <button class="btn btn-ghost bg-info join-item" @click="getPaste">查看剪贴板</button>
       </div>
     </div>
   </div>
